@@ -27,3 +27,10 @@
 *.exe
 *.out
 *.app
+
+# Other files
+*.user
+
+# Dirs
+.*/*
+/output/*
