@@ -5,14 +5,22 @@
 
 namespace HK {
 
-template <typename T, typename... A>
-T& instance(A&&... args)
+template <typename T>
+T& instance(void)
 {
-    static T i(std::forward<A>(args)...);
+    static T i;
     return i;
 }
 
-const char* vkCodeTrans(int code);
 void output(QtMsgType type, const QMessageLogContext& context, const QString& msg);
+
+enum EN_KeyEvent
+{
+    KeyNone,
+    KeyPress,
+    KeyRelease
+};
+EN_KeyEvent vkEventTrans(int evt);
+const char* vkCodeTrans(int code);
 
 } // namespace HK

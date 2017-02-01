@@ -22,6 +22,7 @@ HKConfig::HKConfig(void)
             else this->insert(HKKey(it.key()), it.value().toString());
         }
     }
+    else m_isLogOutput = true;
 }
 
 bool HKConfig::isLogOutput(void) const

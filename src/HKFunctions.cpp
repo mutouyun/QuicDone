@@ -1,11 +1,7 @@
 #include "HKFunctions.h"
+#include "HKApplication.h"
 
-#include <QApplication>
-#include <QVector>
 #include <QTimer>
-
-#include <Windows.h>
-#include <stdlib.h>
 
 HKFunctions::HKFunctions(QObject* parent)
     : QObject(parent)
@@ -27,8 +23,23 @@ QString HKFunctions::appFull(void) const
     return qApp->applicationFilePath();
 }
 
+void HKFunctions::quit(void) const
+{
+    qobject_cast<HKApplication*>(qApp)->quit();
+}
+
+void HKFunctions::version(void) const
+{
+    message("QuicDone!\nv 1.0 (build 0013)");
+}
+
+void HKFunctions::shell(QString cmd) const
+{
+    system(cmd.toUtf8().data());
+}
+
 template <typename F>
-void postCall(F call, int delay = 100)
+static inline void postCall(F call, int delay = 500)
 {
     QTimer* timer = new QTimer;
     timer->setSingleShot(true);
@@ -40,50 +51,8 @@ void postCall(F call, int delay = 100)
     timer->start(delay);
 }
 
-void HKFunctions::message(QString text) const
-{
-    postCall([text]
-    {
-        ::MessageBox(Q_NULLPTR,
-#   ifdef UNICODE
-            text.toStdWString().c_str(), L"QuicDone",
-#   else
-            text.toStdString().c_str(), "QuicDone",
-#   endif
-            MB_ICONINFORMATION | MB_OK);
-    });
-}
-
-void HKFunctions::closeMonitor(void) const
-{
-    postCall([]{ ::PostMessage(HWND_BROADCAST, WM_SYSCOMMAND, SC_MONITORPOWER, 2); });
-}
-
-void HKFunctions::shell(QString cmd) const
-{
-    system(cmd.toUtf8().data());
-}
-
-void HKFunctions::exec(QString cmd, QString param) const
-{
-    postCall([cmd, param]
-    {
-        ::ShellExecute(Q_NULLPTR,
-#   ifdef UNICODE
-            L"open", cmd.toStdWString().c_str(), param.toStdWString().c_str(),
-#   else
-            "open", cmd.toStdString().c_str(), param.toStdString().c_str(),
-#   endif
-            Q_NULLPTR, SW_SHOW);
-    });
-}
-
-void HKFunctions::quit(void) const
-{
-    qApp->quit();
-}
-
-void HKFunctions::version(void) const
-{
-    message("QuicDone!\nv 1.0 (build 0010)");
-}
+#if defined(Q_OS_WIN32)
+#include "HKFunctions_win.hpp"
+#elif defined(Q_OS_LINUX)
+#include "HKFunctions_linux.hpp"
+#endif

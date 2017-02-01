@@ -2,41 +2,30 @@
 #include "HKApplication.h"
 #include "HKConfig.h"
 #include "HKScript.h"
+#include "HKHook.h"
 
 #include <QKeyEvent>
 #include <QDebug>
 
-#include <Windows.h>
+static bool __shouldQuit = false;
 
-HHOOK __keyboardHook = Q_NULLPTR;
+static bool __install(void);
+static void __uninstall(void);
 
-struct ST_HandleInfo
-{
-    bool  hasHandled = false;
-    DWORD vkCode     = 0;
-} __info = {};
-
-static LRESULT CALLBACK __winKeyProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-    if (nCode >= HC_ACTION)
-    {
-        KBDLLHOOKSTRUCT* ks = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
-        if (wParam == WM_SYSKEYDOWN || wParam == WM_KEYDOWN || __info.vkCode != ks->vkCode)
-        {
-            __info.hasHandled = false; // Reset the flag.
-        }
-        emit qobject_cast<HKApplication*>(qApp)->keyEvent(wParam, ks->vkCode);
-        __info.vkCode = ks->vkCode;
-    }
-    LRESULT ret = ::CallNextHookEx(0, nCode, wParam, lParam);
-    return __info.hasHandled ? 1 : ret;
-}
+#if defined(Q_OS_WIN32)
+#include "HKApplication_win.hpp"
+#elif defined(Q_OS_LINUX)
+#include "HKApplication_linux.hpp"
+#endif
 
 HKApplication::HKApplication(int &argc, char **argv)
     : QApplication(argc, argv)
 {
-    __keyboardHook = ::SetWindowsHookEx(WH_KEYBOARD_LL, __winKeyProc, ::GetModuleHandle(Q_NULLPTR), 0);
-    if (__keyboardHook == Q_NULLPTR) quit();
+    if (!__install())
+    {
+        qFatal("[HKApplication] Key hooks failed!!");
+        quit();
+    }
 
     connect(&HK::instance<HKAssembly>(), SIGNAL(keyEvent(HKKey)), this, SLOT(onKeyAssembled(HKKey)));
     connect(this, SIGNAL(keyEvent(int, int)), &HK::instance<HKAssembly>(), SLOT(onKeyEvent(int, int)));
@@ -44,8 +33,22 @@ HKApplication::HKApplication(int &argc, char **argv)
 
 HKApplication::~HKApplication(void)
 {
-    ::UnhookWindowsHookEx(__keyboardHook);
-    __keyboardHook = Q_NULLPTR;
+    __uninstall();
+}
+
+void HKApplication::quit(void)
+{
+    __shouldQuit = true;
+    QApplication::quit();
+}
+
+bool HKApplication::event(QEvent* evt)
+{
+    if ((evt->type() == QEvent::Quit) && !__shouldQuit)
+    {
+        return true;
+    }
+    return QApplication::event(evt);
 }
 
 void HKApplication::onKeyAssembled(HKKey key)
@@ -55,6 +58,6 @@ void HKApplication::onKeyAssembled(HKKey key)
     auto it = HK::instance<HKConfig>().find(key);
     if (it == HK::instance<HKConfig>().end()) return;
     qDebug("Matched!!");
-    __info.hasHandled = true;
+    HKHook::setHandled();
     HK::instance<HKScript>().evaluate(it.value());
 }

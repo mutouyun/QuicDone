@@ -9,37 +9,31 @@
 #include <QDateTime>
 #include <QHash>
 
-#include <Windows.h>
 #include <iostream>
+
+#if defined(Q_OS_WIN32)
+#include "HKDefs_win.hpp"
+#elif defined(Q_OS_LINUX)
+#include "HKDefs_linux.hpp"
+#endif
 
 namespace HK {
 
+EN_KeyEvent vkEventTrans(int evt)
+{
+    auto it = __evtTable.find(evt);
+    if (it == __evtTable.end())
+    {
+        return HK::KeyNone;
+    }
+    return it.value();
+}
+
 const char* vkCodeTrans(int code)
 {
-    static const QHash<int, const char*> __table =
+    auto it = __codeTable.find(code);
+    if (it == __codeTable.end())
     {
-        { VK_SPACE   , "SPACE" },
-        { VK_ESCAPE  , "ESC"   },
-        { VK_RETURN  , "ENTER" },
-        { VK_LSHIFT  , "SHIFT" },
-        { VK_RSHIFT  , "SHIFT" },
-        { VK_LCONTROL, "CTRL"  },
-        { VK_RCONTROL, "CTRL"  },
-        { VK_LMENU   , "ALT"   },
-        { VK_RMENU   , "ALT"   },
-        { VK_LWIN    , "WIN"   },
-        { VK_RWIN    , "WIN"   }
-    };
-    auto it = __table.find(code);
-    if (it == __table.end())
-    {
-        if ((code >= 'A' && code <= 'Z') ||
-            (code >= '0' && code <= '9'))
-        {
-            static char alphabet[2] = {};
-            alphabet[0] = code;
-            return alphabet;
-        }
         return Q_NULLPTR;
     }
     return it.value();

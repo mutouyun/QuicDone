@@ -12,6 +12,11 @@ public:
     HKApplication(int &argc, char **argv);
     ~HKApplication(void);
 
+    void quit(void);
+
+protected:
+    bool event(QEvent *) override;
+
 signals:
     void keyEvent(int evt, int code);
 

@@ -1,7 +1,7 @@
 #include "HKAssembly.h"
+#include "HKHook.h"
 #include "HKDefs.h"
 
-#include <Windows.h>
 #include <QDebug>
 
 HKKey::HKKey(void)
@@ -37,20 +37,23 @@ HKAssembly::HKAssembly(QObject* parent)
 
 void HKAssembly::onKeyEvent(int evt, int code)
 {
+    HKHookLocker locker;
+    Q_UNUSED(locker)
+
+    auto keyEvt = HK::vkEventTrans(evt);
+    if (keyEvt == HK::KeyNone) return;
     auto keyStr = HK::vkCodeTrans(code);
     if (keyStr == Q_NULLPTR) return;
-    switch (evt)
+    switch (keyEvt)
     {
-    case WM_SYSKEYDOWN:
-    case WM_KEYDOWN:
+    case HK::KeyPress:
         {
             HKKey key = m_key;
             key << keyStr;
             if (key != m_key) emit keyEvent(m_key = key);
         }
         break;
-    case WM_SYSKEYUP:
-    case WM_KEYUP:
+    case HK::KeyRelease:
         {
             m_key.remove(keyStr);
             HKKey key = m_key;
@@ -58,5 +61,6 @@ void HKAssembly::onKeyEvent(int evt, int code)
             emit keyEvent(key);
         }
         break;
+    default: break;
     }
 }
