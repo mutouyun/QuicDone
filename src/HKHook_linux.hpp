@@ -23,6 +23,7 @@ class HKHook_
     HKHook_(HKHook* t)
         : t_(t), fd(0)
     {
+        QObject::connect(t_, &HKHook::readyToWork, &HKHook::doWork, Qt::QueuedConnection);
     }
 
     bool install(int id)

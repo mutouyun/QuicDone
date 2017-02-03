@@ -32,6 +32,7 @@ class HKHook_
     HKHook_(HKHook* t)
         : t_(t), keyboardHook(Q_NULLPTR)
     {
+        QObject::connect(t_, &HKHook::readyToWork, &HKHook::doWork);
     }
 
     bool install(int /*id*/)

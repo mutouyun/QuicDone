@@ -17,7 +17,6 @@ HKHook::HKHook(QObject* parent)
     : QObject(parent)
     , p_(new HKHook_(this))
 {
-    connect(this, &HKHook::readyToWork, this, &HKHook::doWork, Qt::QueuedConnection);
 }
 
 HKHook::~HKHook(void)
