@@ -30,7 +30,7 @@ void HKFunctions::quit(void) const
 
 void HKFunctions::version(void) const
 {
-    message("QuicDone!\nv 1.0 (build 0013)");
+    message("QuicDone!\nv 1.0 (build 0014)");
 }
 
 void HKFunctions::shell(QString cmd) const

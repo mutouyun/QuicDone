@@ -1,4 +1,4 @@
-QT += core widgets script
+QT += core widgets qml
 CONFIG += qt c++14
 
 TARGET = QuicDone #HotKey
@@ -17,7 +17,8 @@ SOURCES += \
     src/HKFunctions.cpp \
     src/HKScript.cpp \
     src/HKAssembly.cpp \
-    src/HKHook.cpp
+    src/HKHook.cpp \
+    src/HKStore.cpp
 
 HEADERS += \
     src/HKApplication.h \
@@ -26,7 +27,8 @@ HEADERS += \
     src/HKFunctions.h \
     src/HKScript.h \
     src/HKAssembly.h \
-    src/HKHook.h
+    src/HKHook.h \
+    src/HKStore.h
 
 win32 {
 message(Building for Windows)

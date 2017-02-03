@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QScriptEngine>
+#include <QJSEngine>
 
 class HKScript
 {
@@ -10,5 +10,5 @@ public:
     void evaluate(const QString& value);
 
 private:
-    QScriptEngine m_engine;
+    QJSEngine m_engine;
 };

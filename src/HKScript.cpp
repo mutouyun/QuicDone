@@ -1,6 +1,7 @@
 #include "HKDefs.h"
 #include "HKScript.h"
 #include "HKFunctions.h"
+#include "HKStore.h"
 
 #include <QFileInfo>
 #include <QFile>
@@ -8,13 +9,16 @@
 
 HKScript::HKScript(void)
 {
-    m_engine.globalObject().setProperty("HK", m_engine.newQObject(&HK::instance<HKFunctions>()));
+    HK::instance<HKStore>().init(&m_engine);
+
+    m_engine.globalObject().setProperty("HK"     , m_engine.newQObject(&HK::instance<HKFunctions>()));
+    m_engine.globalObject().setProperty("HKStore", m_engine.newQObject(&HK::instance<HKStore>()));
 }
 
 void HKScript::evaluate(const QString& value)
 {
     if (value.isEmpty()) return;
-    QScriptProgram program;
+    QString program;
     QFileInfo info(value);
     if (info.isFile())
     {
@@ -23,13 +27,13 @@ void HKScript::evaluate(const QString& value)
         if (script.open(QIODevice::ReadOnly))
         {
             QTextStream stream(&script);
-            program = QScriptProgram(stream.readAll(), value);
+            program = stream.readAll();
             script.close();
         }
     }
     else
     {
-        program = QScriptProgram(value);
+        program = value;
     }
     m_engine.evaluate(program);
 }
